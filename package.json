@@ -1,6 +1,6 @@
 {
   "name": "gulp-degfy-html2js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,7 @@
   "author": "degfy@sina.com",
   "license": "ISC",
   "dependencies": {
-    "trough2": "^2.0.1",
+    "through2": "^2.0.1",
     "gulp-util": "^3.0.7",
     "utils": "^0.3.1"
   }
