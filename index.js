@@ -17,7 +17,8 @@ const CODE_END = '})();';
  *     base:'',          //基础目录,默认'file.base'
  *     cacheFunction:'', //使用的缓存函数,默认'$.tpl'
  *     output:'',        //输出文件,默认'tpl.js',
- *     relativePath:true //使用相对路径
+ *     relativePath:true,//使用相对路径,
+ *     concat: true      //是否合并，如果不合并，output参数失效
  * }
  * ```
  * @return {[type]}         [description]
@@ -26,7 +27,8 @@ module.exports = function(options) {
   var ops = {
     cacheFunction: '$.tpl',
     output: 'tpl.js',
-    relativePath:true,
+    relativePath: true,
+    concat: true
   };
 
   utils.extend(ops, options);
@@ -35,10 +37,11 @@ module.exports = function(options) {
     contents: ''
   };
   var prefix = '';
-  if(!ops.relativePath){
+  if (!ops.relativePath) {
     prefix = '/';
   }
-  return through2.obj(function(file, env, cb) {
+
+  var transformFn = function(file, env, cb) {
     if (file.isNull()) {
       this.push(file);
       return cb();
@@ -52,7 +55,7 @@ module.exports = function(options) {
       outfile.base = ops.base || file.base;
       outfile.cwd = file.cwd;
     }
-    var r_filename =  prefix + path.relative(outfile.base, file.path);
+    var r_filename = prefix + path.relative(outfile.base, file.path);
     var fileStr = file.contents.toString();
 
     fileStr = fileStr.replace(/(')|(\n)|(^|$)/g, function(m0, m1, m2, m3) {
@@ -65,11 +68,19 @@ module.exports = function(options) {
       return "'";
     });
 
-    fileStr = ops.cacheFunction + "('" + r_filename + "', " + fileStr + ');\n\n'; 
-    outfile.contents += fileStr;
+    fileStr = ops.cacheFunction + "('" + r_filename + "', " + fileStr + ');\n\n';
+    if (ops.concat) {
+      outfile.contents += fileStr;
+    } else {
+      file.contents = new Buffer(CODE_BEGIN + fileStr + CODE_END);
+      file.path = file.path + '.js';
+      console.log(file);
+      this.push(file);
+    }
 
     cb();
-  }, function(cb) {
+  };
+  var flushFn = function(cb) {
     this.push(new gutil.File({
       base: outfile.base,
       cwd: outfile.cwd,
@@ -77,5 +88,13 @@ module.exports = function(options) {
       contents: new Buffer(CODE_BEGIN + outfile.contents + CODE_END)
     }));
     cb();
-  });
+  };
+
+
+  if(ops.concat){
+    return through2.obj(transformFn, flushFn);
+  }
+  else{
+    return through2.obj(transformFn);
+  }
 };
