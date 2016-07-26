@@ -74,7 +74,7 @@ module.exports = function(options) {
     } else {
       file.contents = new Buffer(CODE_BEGIN + fileStr + CODE_END);
       file.path = file.path + '.js';
-      console.log(file);
+      // console.log(file);
       this.push(file);
     }
 
