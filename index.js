@@ -58,7 +58,7 @@ module.exports = function(options) {
     var r_filename = prefix + path.relative(outfile.base, file.path);
     var fileStr = file.contents.toString();
 
-    fileStr = fileStr.replace(/(')|(\n)|(^|$)/g, function(m0, m1, m2, m3) {
+    fileStr = fileStr.replace(/(')|([\n\r]+)|(^|$)/g, function(m0, m1, m2, m3) {
       if (m1) {
         return "\\'";
       }
